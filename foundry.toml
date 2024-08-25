@@ -1,0 +1,21 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+remappings = [
+  '@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/',
+  '@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/',
+  '@chainlink/contracts/=node_modules/@chainlink/contracts/',
+]
+
+[rpc_endpoints]
+default_network = "http://127.0.0.1:8545"
+localhost = "http://127.0.0.1:8545"
+baseSepolia = "https://sepolia.base.org"
+
+[etherscan]
+localhost = { key = "" , url="http://127.0.0.1:8545"}
+baseSepolia = { key = "${BASE_SEPOLIA_ETHERSCAN_API_KEY}", url = "https://api-sepolia.basescan.org/api", chain=84532 }

@@ -1,0 +1,15 @@
+{
+  "name": "Exchange contract",
+  "private": true,
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test",
+    "deploy": "make deploy-local",
+    "deploy:baseSepolia": "make deploy-baseSepolia"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^1.2.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2"
+  }
+}
