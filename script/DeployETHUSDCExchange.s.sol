@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.so
 import "src/ETHUSDCExchange.sol";
 import "src/mock/USDCMock.sol";
 import "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 contract DeployETHUSDCExchange is Script {
     function run() external {
@@ -16,19 +17,10 @@ contract DeployETHUSDCExchange is Script {
 
         MockV3Aggregator mockPriceFeed = new MockV3Aggregator(8, 2000 * 10**8);
 
-        // Deploy the implementation contract
-        ETHUSDCExchange ethUsdcExchangeImplementation = new ETHUSDCExchange();
-
-        // Deploy the proxy contract
-        ProxyAdmin proxyAdmin = new ProxyAdmin(msg.sender);
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
-            address(ethUsdcExchangeImplementation),
-            address(proxyAdmin),
-            abi.encodeWithSelector(
-                ETHUSDCExchange.initialize.selector,
-                address(usdc),
-                address(mockPriceFeed)
-            )
+        address proxy = Upgrades.deployTransparentProxy(
+            "ETHUSDCExchange.sol",
+            msg.sender,
+            abi.encodeCall(ETHUSDCExchange.initialize, (address(usdc), address(mockPriceFeed)))
         );
 
         // Stop broadcasting the transaction

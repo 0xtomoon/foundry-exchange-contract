@@ -3,15 +3,15 @@ pragma solidity ^0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
 import "../src/ETHUSDCExchange.sol";
+import "../src/ETHUSDCExchangeV2.sol";
 import "../src/mock/USDCMock.sol";
 import "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 contract ETHUSDCExchangeTest is Test {
     ETHUSDCExchange exchange;
-    ProxyAdmin proxyAdmin;
-    TransparentUpgradeableProxy proxy;
     USDCMock usdc;
     MockV3Aggregator priceFeed;
     address owner;
@@ -21,19 +21,23 @@ contract ETHUSDCExchangeTest is Test {
         owner = address(this);  // Test contract is the owner
         usdc = new USDCMock();
         priceFeed = new MockV3Aggregator(8, 2000 * 10**8); // start with a price of $2000 per ETH
-        ETHUSDCExchange implementation = new ETHUSDCExchange();
-        proxyAdmin = new ProxyAdmin(owner);
-        proxy = new TransparentUpgradeableProxy(
-            address(implementation),
-            address(proxyAdmin),
-            abi.encodeWithSelector(
-                ETHUSDCExchange.initialize.selector,
-                address(usdc),
-                address(priceFeed)
-            )
+        address proxy = Upgrades.deployTransparentProxy(
+            "ETHUSDCExchange.sol",
+            owner,
+            abi.encodeCall(ETHUSDCExchange.initialize, (address(usdc), address(priceFeed)))
         );
-        exchange = ETHUSDCExchange(address(proxy));
+
+        exchange = ETHUSDCExchange(proxy);
         usdc.transfer(address(exchange), 100000 * 10**usdc.decimals());  // Funding the exchange with USDC
+    }
+
+    function testUpgrade() public {
+        Upgrades.upgradeProxy(
+            address(exchange),
+            "ETHUSDCExchangeV2.sol",
+            ""
+        );
+        assertEq(ETHUSDCExchangeV2(address(exchange)).returnHundred(), 100, "Contract is not upgraded successfully.");
     }
 
     function testDepositETH() public {
